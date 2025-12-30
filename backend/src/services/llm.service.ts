@@ -3,13 +3,9 @@ import { env } from '../config/env';
 import { LLM_CONFIG, STORE_KNOWLEDGE, ERROR_MESSAGES } from '../utils/constants';
 import type { Message } from '../generated/prisma';
 
-// Initialize Gemini client
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
 export class LLMService {
-  /**
-   * Generate AI response using Gemini API
-   */
   async generateReply(
     userMessage: string,
     conversationHistory: Message[] = []
@@ -23,21 +19,12 @@ export class LLMService {
         },
       });
 
-      // Build the full prompt with context
       const prompt = this.buildPrompt(userMessage, conversationHistory);
       
       const result = await model.generateContent(prompt);
       const response = result.response;
       const reply = response.text();
 
-      console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-      console.log(reply);
-      console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-      console.log(reply.trim());
-      console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-
-
-      
       if (!reply) {
         throw new Error('No response from LLM');
       }
@@ -48,16 +35,12 @@ export class LLMService {
     }
   }
 
-  /**
-   * Build the prompt with system instructions and conversation history
-   */
   private buildPrompt(
     userMessage: string,
     conversationHistory: Message[]
   ): string {
     let prompt = STORE_KNOWLEDGE + '\n\n';
     
-    // Add conversation history
     if (conversationHistory.length > 0) {
       prompt += 'Conversation History:\n';
       conversationHistory.forEach((msg) => {
@@ -67,20 +50,15 @@ export class LLMService {
       prompt += '\n';
     }
     
-    // Add current user message
     prompt += `Customer: ${userMessage}\n`;
     prompt += 'Agent:';
     
     return prompt;
   }
 
-  /**
-   * Handle LLM API errors gracefully
-   */
   private handleLLMError(error: any): string {
     console.error('LLM API Error:', error);
 
-    // Handle specific Gemini errors
     if (error?.code === 'ETIMEDOUT' || error?.code === 'ECONNABORTED') {
       return ERROR_MESSAGES.LLM_TIMEOUT;
     }
@@ -98,10 +76,8 @@ export class LLMService {
       return 'AI service is temporarily unavailable. Please try again.';
     }
 
-    // Generic error
     return ERROR_MESSAGES.LLM_ERROR;
   }
 }
 
-// Export singleton instance
 export const llmService = new LLMService();

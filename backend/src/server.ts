@@ -6,36 +6,25 @@ import { testConnection, disconnectPrisma } from './config/prisma';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
 
-// Initialize Express app
 const app: Express = express();
 
-// Middleware
-app.use(cors()); // Enable CORS for all origins
-app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
-app.use(morgan('dev')); // HTTP request logger
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
-// API Routes
 app.use('/api', routes);
 
-// 404 handler - must be after all routes
 app.use(notFoundHandler);
 
-// Error handling middleware - must be last
 app.use(errorHandler);
 
-/**
- * Start the server
- */
 const startServer = async (): Promise<void> => {
   try {
-    // Validate environment variables
     validateEnv();
 
-    // Test database connection
     await testConnection();
 
-    // Start listening
     app.listen(env.PORT, () => {
       console.log('========================================');
       console.log(`🚀 Server running in ${env.NODE_ENV} mode`);
@@ -50,9 +39,6 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-/**
- * Graceful shutdown handler
- */
 const gracefulShutdown = async (signal: string): Promise<void> => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
   
@@ -66,21 +52,17 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
   }
 };
 
-// Handle shutdown signals
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 
-// Start the server
 startServer();

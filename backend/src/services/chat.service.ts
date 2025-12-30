@@ -15,13 +15,9 @@ interface SendMessageResponse {
 }
 
 export class ChatService {
-  /**
-   * Handle incoming chat message and generate AI reply
-   */
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
     const { message, sessionId } = request;
 
-    // Get or create conversation
     let conversation: Conversation;
     
     if (sessionId) {
@@ -33,7 +29,6 @@ export class ChatService {
       
       conversation = existing;
     } else {
-      // Create new conversation
       conversation = await conversationRepository.create();
     }
 
@@ -66,9 +61,6 @@ export class ChatService {
     };
   }
 
-  /**
-   * Get conversation history by session ID
-   */
   async getConversationHistory(sessionId: string): Promise<Message[]> {
     const conversation = await conversationRepository.findById(sessionId, true) as any;
     
@@ -79,13 +71,9 @@ export class ChatService {
     return conversation.messages || [];
   }
 
-  /**
-   * Check if a session exists
-   */
   async sessionExists(sessionId: string): Promise<boolean> {
     return await conversationRepository.exists(sessionId);
   }
 }
 
-// Export singleton instance
 export const chatService = new ChatService();

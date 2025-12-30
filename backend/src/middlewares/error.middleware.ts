@@ -10,10 +10,6 @@ interface ErrorResponse {
   };
 }
 
-/**
- * Global error handling middleware
- * Must be registered after all routes
- */
 export const errorHandler = (
   err: Error,
   req: Request,
@@ -26,7 +22,6 @@ export const errorHandler = (
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 
-  // Handle validation errors
   if (err instanceof ValidationException) {
     res.status(400).json({
       success: false,
@@ -38,7 +33,6 @@ export const errorHandler = (
     return;
   }
 
-  // Handle Prisma errors
   if (err.name === 'PrismaClientKnownRequestError') {
     res.status(400).json({
       success: false,
@@ -49,7 +43,6 @@ export const errorHandler = (
     return;
   }
 
-  // Handle custom application errors
   if (err.message === ERROR_MESSAGES.INVALID_SESSION) {
     res.status(404).json({
       success: false,
@@ -60,7 +53,6 @@ export const errorHandler = (
     return;
   }
 
-  // Default internal server error
   res.status(500).json({
     success: false,
     error: {
@@ -70,9 +62,6 @@ export const errorHandler = (
   } as ErrorResponse);
 };
 
-/**
- * 404 Not Found handler
- */
 export const notFoundHandler = (req: Request, res: Response): void => {
   res.status(404).json({
     success: false,
